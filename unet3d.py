@@ -7,6 +7,8 @@ https://arxiv.org/abs/1803.08494
 And then modified to use residual style connections.
 With other alterations.
 And then further modified to perform convolutions in 3D.
+And then further modified to give an output with the same
+dimensions as input (extra padding)
 
 Copyright (C) 2019, 2020 Abraham George Smith
 
