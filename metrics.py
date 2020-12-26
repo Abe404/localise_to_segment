@@ -29,13 +29,18 @@ def get_metrics_str(all_metrics, to_use=None):
             out_str += f" {name} {val:.4g}"
     return out_str
 
-def get_metric_csv_row(metrics):
-    now_str = datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
-    parts = [now_str, metrics['tp'], metrics['fp'], metrics['tn'],
-             metrics['fn'], round(metrics['precision'], 4),
-             round(metrics['recall'], 4), round(metrics['dice'], 4)]
-    return ','.join([str(p) for p in parts]) + '\n'
 
+def get_metric_header_str():
+    return "seconds,time,tp,fp,tn,fn,precision,recall,dice"
+
+def get_metric_csv_row(metrics, start_time):
+    now_str = datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
+    seconds = datetime.now() - start_time
+    parts = [seconds, now_str, metrics['tp'],
+             metrics['fp'], metrics['tn'], metrics['fn'],
+             round(metrics['precision'], 4), round(metrics['recall'], 4),
+             round(metrics['dice'], 4)]
+    return ','.join([str(p) for p in parts])
 
 def get_metrics_from_arrays(y_pred, y_true):
     y_true = y_true.reshape(-1)
