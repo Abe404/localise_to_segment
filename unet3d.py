@@ -84,7 +84,6 @@ class UpBlock(nn.Module):
 
     def forward(self, x, down_out):
         out = self.conv1(x)
-        # cropped = crop_tensor(down_out, out)
         out = down_out + out # residual
         out = self.conv2(out)
         out = self.conv3(out)
@@ -127,7 +126,6 @@ class UNet3D(nn.Module):
         out = self.up4(out, out1)
         out = self.conv_out(out)
         return out
-
 
 
 if __name__ == '__main__':
