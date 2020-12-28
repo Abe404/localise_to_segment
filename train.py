@@ -69,6 +69,6 @@ if __name__ == '__main__':
     train_ds, val_ds, test_ds = create_datasets(data_dir)
     total_logs = len(os.listdir('logs'))
     log_csv_path = f'logs/train_metrics_combined_{total_logs}.csv'
-    metric_list = train_network(train_ds, 400, log_csv_path)
+    metric_list = train_network(train_ds, 200, log_csv_path)
     print('metric_list', metric_list)
     print('metric_list', [m['dice'] for m in metric_list])
