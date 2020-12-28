@@ -13,6 +13,7 @@ from metrics import (get_metrics_from_arrays,
                      get_metric_header_str)
 from datasets import create_datasets
 
+
 def train_network(train_ds, epochs, log_path):
     """ Train a network for {epochs}
         using data from {train_ds}.
@@ -22,14 +23,14 @@ def train_network(train_ds, epochs, log_path):
                             shuffle=True, num_workers=12)
     cnn = UNet3D(im_channels=1, out_channels=2).cuda()
     cnn = nn.DataParallel(cnn)
-    #optimizer = torch.optim.SGD(cnn.parameters(), lr=0.01,
-    #                            momentum=0.9, nesterov=True)
-    optimizer = torch.optim.Adam(cnn.parameters())
+    optimizer = torch.optim.SGD(cnn.parameters(), lr=0.01,
+                                momentum=0.9, nesterov=True)
     loss_fn = combined_loss
     train_log = open(log_path, 'w+')
     print(get_metric_header_str(), file=train_log)
     metric_list = []
     train_start = time.time()
+    print('start training epochs')
     for i in range(epochs):
         start = time.time()
         print('start epoch', i)
@@ -62,11 +63,12 @@ def train_network(train_ds, epochs, log_path):
         metric_list.append(m)
     return metric_list
 
+
 if __name__ == '__main__':
     data_dir = os.path.join('data', 'ThoracicOAR_quarter')
     train_ds, val_ds, test_ds = create_datasets(data_dir)
     total_logs = len(os.listdir('logs'))
     log_csv_path = f'logs/train_metrics_combined_{total_logs}.csv'
-    metric_list = train_network(train_ds, 200, log_csv_path)
+    metric_list = train_network(train_ds, 400, log_csv_path)
     print('metric_list', metric_list)
     print('metric_list', [m['dice'] for m in metric_list])
