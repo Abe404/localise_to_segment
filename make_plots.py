@@ -7,8 +7,10 @@ from skimage import img_as_float
 from skimage.io import imsave
 import shutil
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 from data_prep import load_im_and_heart
+from csv_utils import load_csv
 
 def heart_percent_plot():
     heart_percents = []
@@ -29,6 +31,29 @@ def heart_percent_plot():
     plt.savefig('plots/heart_percent.png')
 
 
+def load_train_dice():
+    fname = 'train_metrics_combined_quarter_1.csv'
+    seconds, dices = load_csv('logs/' + fname,
+                              ['seconds', 'dice'],
+                              [float, float])
+    return seconds[:200], dices[:200]
+
+
+def plot_train_dice():
+    _, dices = load_train_dice()
+    plt.figure(figsize=(16, 9))
+    clrs = sns.color_palette("husl", 5)
+    with sns.axes_style('white'):
+        epochs = range(len(dices))
+        #plt.yticks(np.arange(0, 36, 2))
+        plt.plot(epochs, dices, label=f'dice', c=clrs[0])
+        plt.grid()
+        # plt.fill_between(idx, means-stds, means+stds,
+        #                  alpha=0.3, facecolor=clrs[0])
+        plt.legend()
+    plt.savefig('plots/train_dice_quarter_res.png')
+
+
 def show_central_heart_slice(input_dir, im_dir_name = '1'):
     im_data_dir = os.path.join(input_dir, im_dir_name)
     assert os.path.isdir(im_data_dir), f'{im_data_dir} required. Did you download struct seg?'
@@ -45,4 +70,5 @@ def show_central_heart_slice(input_dir, im_dir_name = '1'):
 
 if __name__ == '__main__':
     output_dir = os.path.join('data', 'ThoracicOAR_eighth')
-    show_central_heart_slice(output_dir, im_dir_name = '1')
+    #show_central_heart_slice(output_dir, im_dir_name = '1')
+    plot_train_dice()
