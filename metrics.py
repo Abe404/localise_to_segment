@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 # pylint: disable=C0111,R0913
 from datetime import datetime
+import time
 from collections import namedtuple
 import numpy as np
 
@@ -35,7 +36,7 @@ def get_metric_header_str():
 
 def get_metric_csv_row(metrics, start_time):
     now_str = datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
-    seconds = datetime.now() - start_time
+    seconds = time.time() - start_time
     parts = [seconds, now_str, metrics['tp'],
              metrics['fp'], metrics['tn'], metrics['fn'],
              round(metrics['precision'], 4), round(metrics['recall'], 4),
