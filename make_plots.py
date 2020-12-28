@@ -1,3 +1,20 @@
+"""
+Copyright (C) 2020 Abraham George Smith
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+"""
+
 import os
 import numpy as np
 import nibabel as nib
@@ -70,5 +87,5 @@ def show_central_heart_slice(input_dir, im_dir_name = '1'):
 
 if __name__ == '__main__':
     output_dir = os.path.join('data', 'ThoracicOAR_eighth')
-    #show_central_heart_slice(output_dir, im_dir_name = '1')
+    # show_central_heart_slice(output_dir, im_dir_name = '1')
     plot_train_dice()
