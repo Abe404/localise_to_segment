@@ -21,6 +21,7 @@ import matplotlib.pyplot as plt
 import os
 import math
 import numpy as np
+import texfig
 from data_prep import load_nifty
 
 def autolabel_percent(bars):
@@ -69,7 +70,8 @@ def mean_class_balances():
     plt.ylabel('Percentage of total image')
     plt.xlabel('Organ')
     plt.xticks(range(len(names)), names)
-    plt.savefig(f'plots/image_mean_class_balance_percent.png')
+    plt.savefig(f'png_plots/image_mean_class_balance_percent.png')
+    texfig.savefig(f'latex_plots/image_mean_class_balance_percent')
 
 
 def image_1_class_balance():
@@ -98,7 +100,7 @@ def image_1_class_balance():
         plt.ylabel('number of voxels')
         plt.xlabel('class')
         plt.xticks(range(len(names)), names)
-        plt.savefig(f'plots/image_class_include_bg={include_bg}.png')
+        plt.savefig(f'png_plots/image_class_include_bg={include_bg}.png')
 
 def plot_esophagus_sizes():
     plt.figure(figsize=(12*0.8, 8*0.8))
@@ -116,7 +118,7 @@ def plot_esophagus_sizes():
     rects = plt.bar(list(range(len(vals))), vals, color=([plt.rcParams['axes.prop_cycle'].by_key()['color'][4]] * 50))
     #autolabel(rects)
     #plt.xticks(range(len(names)), names)
-    plt.savefig('plots/esophagus_sizes.png')
+    plt.savefig('png_plots/esophagus_sizes.png')
 
     ### as %
     plt.figure(figsize=(12*0.8, 8*0.8))
@@ -135,7 +137,7 @@ def plot_esophagus_sizes():
     rects = plt.bar(list(range(len(vals))), vals, color=([plt.rcParams['axes.prop_cycle'].by_key()['color'][4]] * 50))
     #autolabel(rects)
     #plt.xticks(range(len(names)), names)
-    plt.savefig('plots/esophagus_percent.png')
+    plt.savefig('png_plots/esophagus_percent.png')
 
 def plot_heart_percent():
     ### Heart % of image.
@@ -154,7 +156,7 @@ def plot_heart_percent():
     rects = plt.bar(list(range(len(vals))), vals, color=([plt.rcParams['axes.prop_cycle'].by_key()['color'][3]] * 50))
     #autolabel(rects)
     #plt.xticks(range(len(names)), names)
-    plt.savefig('plots/heart_percent.png')
+    plt.savefig('png_plots/heart_percent.png')
 
 if __name__ == '__main__':
     mean_class_balances()
