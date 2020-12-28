@@ -1,4 +1,4 @@
-# Localise to segment. An investigation into accuracy improvements possible with cascade and localisation steps for semantic segmentation of organs at risk.
+# Localise to segment. An investigation into the accuracy provided by cascade and localisation steps for semantic segmentation of organs at risk.
 
 Install dependencies.
 > pip install -r requirements.txt
