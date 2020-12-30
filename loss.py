@@ -25,7 +25,7 @@ def combined_loss(predictions, labels):
     loss_sum = 0
     if torch.sum(labels):
         loss_sum += dice_loss(predictions, labels)
-    loss_sum += cross_entropy(predictions, labels)
+    loss_sum += (0.3 * cross_entropy(predictions, labels))
     return loss_sum
 
 

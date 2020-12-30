@@ -141,6 +141,6 @@ def train_epochs(patience, data_dir, output_dir):
 
 if __name__ == '__main__':
     for i in range(6):
-        train_epochs(patience=60,
+        train_epochs(patience=20,
                      data_dir=os.path.join('data', 'ThoracicOAR_quarter'),
-                     output_dir='train_output/struct_seg_heart_quarter_adam')
+                     output_dir='train_output/struct_seg_heart_quarter_adam_less_cx')
