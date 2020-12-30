@@ -93,8 +93,9 @@ def train_epochs(patience, data_dir, output_dir):
                             shuffle=True, num_workers=12)
     cnn = UNet3D(im_channels=1, out_channels=2).cuda()
     cnn = nn.DataParallel(cnn)
-    optimizer = torch.optim.SGD(cnn.parameters(), lr=0.01,
-                                momentum=0.9, nesterov=True)
+    optimizer = torch.optim.Adam(cnn.parameters())
+    #optimizer = torch.optim.SGD(cnn.parameters(), lr=0.01,
+    #                            momentum=0.9, nesterov=True)
     loss_fn = combined_loss
     train_log = open(train_log_csv_path, 'w+')
     val_log = open(val_log_csv_path, 'w+')
@@ -139,7 +140,7 @@ def train_epochs(patience, data_dir, output_dir):
 
 
 if __name__ == '__main__':
-    for i in range(10):
+    for i in range(6):
         train_epochs(patience=60,
                      data_dir=os.path.join('data', 'ThoracicOAR_quarter'),
-                     output_dir='train_output/struct_seg_heart_quarter')
+                     output_dir='train_output/struct_seg_heart_quarter_adam')

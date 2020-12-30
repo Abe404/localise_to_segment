@@ -106,8 +106,6 @@ def plot_dice(log_dir):
                                  label=f'validation dice {run_dir}, max: {round(max(dices), 3)}',
                                  linestyle='--')
 
-
-
             # plt.fill_between(idx, means-stds, means+stds,
             #                  alpha=0.3, facecolor=clrs[0])
             plt.legend()
@@ -118,7 +116,6 @@ def plot_dice(log_dir):
         fig_path = os.path.join(log_dir, 'plots', 'train_val_dice_' + x_axis + '.png')
         print('saving figure to ', fig_path)
         plt.savefig(fig_path)
-
         # Then plot dice over time (minutes) for both training and validation.
 
 
@@ -139,4 +136,4 @@ def show_central_heart_slice(input_dir, im_dir_name = '1'):
 if __name__ == '__main__':
     # output_dir = os.path.join('data', 'ThoracicOAR_eighth')
     # show_central_heart_slice(output_dir, im_dir_name = '1')
-    plot_dice('train_output/struct_seg_heart_quarter')
+    plot_dice('train_output/struct_seg_heart_quarter_adam')
