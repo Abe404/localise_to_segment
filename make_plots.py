@@ -122,8 +122,6 @@ def plot_dice(log_dir):
         # Then plot dice over time (minutes) for both training and validation.
 
 
-
-
 def show_central_heart_slice(input_dir, im_dir_name = '1'):
     im_data_dir = os.path.join(input_dir, im_dir_name)
     assert os.path.isdir(im_data_dir), f'{im_data_dir} required. Did you download struct seg?'
