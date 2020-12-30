@@ -1,5 +1,6 @@
 """
 Copyright (C) 2020 Abraham George Smith
+Copyright (C) 2021 Abraham George Smith
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -16,12 +17,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import os
+import random
+import math
 import numpy as np
 from skimage.io import imread
 from torch.utils.data import Dataset, DataLoader
 from data_prep import load_im_and_heart
-import random
-
 
 def create_train_val_test_split(data_dir):
     all_fnames = os.listdir(data_dir)
@@ -46,7 +47,6 @@ class ImageDataset(Dataset):
     def __init__(self, im_names, parent_folder_path, patch_shape=None):
         """ if patch_size is specified then take a random
             patch with this size from the image and annotation """
-            
         self.im_names = im_names
         self.parent_dir = parent_folder_path
         self.patch_shape = patch_shape
@@ -56,27 +56,31 @@ class ImageDataset(Dataset):
 
     def __getitem__(self, idx):
         im_name = self.im_names[idx]
-        im, heart_labels = load_im_and_heart(os.path.join(self.parent_dir, im_name))
+        im, annot = load_im_and_heart(os.path.join(self.parent_dir, im_name))
         
         if self.patch_shape:
             # Limits for possible sampling locations from image
             # (based on size of image)
-            depth_lim = im.shape[0] - patch_shape[0]
-            bottom_lim = im.shape[1] - patch_shape[1]
-            right_lim = im.shape[2] - patch_shape[2]
+            depth_lim = im.shape[0] - self.patch_shape[0]
+            bottom_lim = im.shape[1] - self.patch_shape[1]
+            right_lim = im.shape[2] - self.patch_shape[2]
 
             x_in = math.floor(random.random() * right_lim)
             y_in = math.floor(random.random() * bottom_lim)
             z_in = math.floor(random.random() * depth_lim)
 
-            im = image[z_in:z_in+patch_shape[0],
-                       y_in:y_in+patch_shape[1],
-                       x_in:x_in+patch_shape[2]]
-
+            im = im[z_in:z_in+self.patch_shape[0],
+                    y_in:y_in+self.patch_shape[1],
+                    x_in:x_in+self.patch_shape[2]]
+        
+            annot = annot[z_in:z_in+self.patch_shape[0],
+                          y_in:y_in+self.patch_shape[1],
+                          x_in:x_in+self.patch_shape[2]]
+        
         # add a channel dimension at the start, torch needs it
         im = np.expand_dims(im, axis=0).astype(np.float32)
-        heart_labels = heart_labels.astype(np.int16)
-        return im, heart_labels
+        annot = annot.astype(np.int16)
+        return im, annot
 
 
 def create_datasets(data_dir, patch_shape=None):
