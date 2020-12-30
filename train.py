@@ -14,7 +14,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-
 import os
 import torch.nn.functional as F
 import torch
@@ -64,28 +63,20 @@ def train_epoch(dataloader, cnn, optimizer, loss_fn):
         np.mean(losses))
 
 
-def val_epoch(val_dataset, cnn):
+def val_epoch(dataloader, cnn, patch_shape):
     start = time.time()
     tps = []
     tns = []
     fps = []
     fns = []
-    for step, (image_batch, labels_batch) in enumerate(dataloader):
-        image = image_batch[0]
-        annot = labels_batch[0]
-        preds = segment(cnn, image)
-        print('preds unique = ', np.unique(preds))
-        print('annot unique = ', np.unique(annot))
+    for step, (image, annot) in enumerate(dataloader):
+        preds = segment(cnn, image[0], 2, patch_shape, patch_shape)
         foregrounds_int = annot.reshape(-1).astype(np.int)
         preds_int = preds.reshape(-1).astype(np.int)
-        tps.append(torch.sum((foregrounds_int == 1) *
-                             (preds_int == 1)).cpu().numpy())
-        tns.append(torch.sum((foregrounds_int == 0) *
-                             (preds_int == 0)).cpu().numpy())
-        fps.append(torch.sum((foregrounds_int == 0) *
-                             (preds_int == 1)).cpu().numpy())
-        fns.append(torch.sum((foregrounds_int == 1) *
-                             (preds_int == 0)).cpu().numpy())
+        tps.append(np.sum((foregrounds_int == 1) * (preds_int == 1)))
+        tns.append(np.sum((foregrounds_int == 0) * (preds_int == 0)))
+        fps.append(np.sum((foregrounds_int == 0) * (preds_int == 1)))
+        fns.append(np.sum((foregrounds_int == 1) * (preds_int == 0)))
     return (np.sum(tps), np.sum(fps),
             np.sum(tns), np.sum(fns))
 
@@ -151,15 +142,16 @@ def train_epochs(patience, data_dir, output_dir, patch_shape=None):
 
     train_log_csv_path = os.path.join(log_dir, 'train_metrics.csv')
     val_log_csv_path = os.path.join(log_dir, 'val_metrics.csv')
-    train_loader = DataLoader(train_ds, batch_size=10, 
-                              shuffle=True, num_workers=12)
+    train_loader = DataLoader(train_ds, batch_size=2, 
+                              shuffle=True, num_workers=0)
 
     def val_collate(batch):
         # no collate required for validation.
-        return batch
+        # first element in (im, labels)
+        return batch[0]
     
     val_loader = DataLoader(val_ds, batch_size=1,
-                            shuffle=True, num_workers=12,
+                            shuffle=True, num_workers=0,
                             collate_fn=val_collate)
     cnn = UNet3D(im_channels=1, out_channels=2).cuda()
     cnn = nn.DataParallel(cnn)
@@ -170,7 +162,7 @@ def train_epochs(patience, data_dir, output_dir, patch_shape=None):
     train_log = open(train_log_csv_path, 'w+')
     val_log = open(val_log_csv_path, 'w+')
     print(get_metric_header_str() + ',loss', file=train_log)
-    print(get_metric_header_str() + ',loss', file=val_log)
+    print(get_metric_header_str(), file=val_log)
     best_dice = 0
     epochs_without_progress = 0
     epoch = 0
@@ -187,10 +179,10 @@ def train_epochs(patience, data_dir, output_dir, patch_shape=None):
         print('epoch', epoch, 'train', get_metrics_str(train_m))
         # Validation
         cnn.eval()
-        epoch_result = val_epoch(val_loader, cnn)
-        (tps, fps, tns, fns, mean_loss) = epoch_result
+        epoch_result = val_epoch(val_loader, cnn, patch_shape)
+        (tps, fps, tns, fns) = epoch_result
         val_m = get_metrics(np.sum(tps), np.sum(fps), np.sum(tns), np.sum(fns))
-        print(f'{get_metric_csv_row(val_m, train_start)},{round(mean_loss, 4)}',
+        print(f'{get_metric_csv_row(val_m, train_start)}',
               file=val_log)
         print('epoch', epoch, 'val', get_metrics_str(val_m))
         # Checkpoint and early stopping.
@@ -214,4 +206,5 @@ if __name__ == '__main__':
     for i in range(6):
         train_epochs(patience=20,
                      data_dir=os.path.join('data', 'ThoracicOAR'),
-                     output_dir='train_output/struct_seg_heart_full')
+                     output_dir='train_output/struct_seg_heart_full',
+                     patch_shape=(64,256,256))
