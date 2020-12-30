@@ -16,7 +16,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import os
-import random
 import numpy as np
 import nibabel as nib
 
@@ -27,7 +26,6 @@ from skimage.transform import resize
 from skimage import img_as_float
 import shutil
 
-random.seed(42)
 
 def save_nifty(image, image_path):
     """ save compressed nifty file to disk and
