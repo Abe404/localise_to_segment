@@ -16,6 +16,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import os
+import math
 import torch.nn.functional as F
 import torch
 import torch.nn as nn
@@ -31,9 +32,9 @@ def get_coords_3d(annot_shape, out_tile_shape):
 
     assert len(annot_shape) == 3, str(annot_shape) # d, h, w
     
-    depth_count = ceil(annot_shape[0] / out_tile_shape[0])
-    vertical_count = ceil(annot_shape[1] / out_tile_shape[1])
-    horizontal_count = ceil(annot_shape[2] / out_tile_shape[2])
+    depth_count = math.ceil(annot_shape[0] / out_tile_shape[0])
+    vertical_count = math.ceil(annot_shape[1] / out_tile_shape[1])
+    horizontal_count = math.ceil(annot_shape[2] / out_tile_shape[2])
 
     # first split the image based on the tiles that fit
     z_coords = [d*out_tile_shape[0] for d in range(depth_count-1)] # z is depth
@@ -98,7 +99,6 @@ def segment(cnn, image, batch_size, in_tile_shape, out_tile_shape):
                 assert tile.shape[1] == in_tile_shape[0], str(tile.shape)
                 assert tile.shape[2] == in_tile_shape[1], str(tile.shape)
                 assert tile.shape[3] == in_tile_shape[2], str(tile.shape)
-                tile = img_as_float32(tile)
                 coord_idx += 1
                 tiles_to_process.append(tile) # need channel dimension
                 coords_to_process.append(coord)
