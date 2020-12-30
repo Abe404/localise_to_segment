@@ -143,7 +143,7 @@ def train_epochs(patience, data_dir, output_dir, patch_shape=None):
     train_log_csv_path = os.path.join(log_dir, 'train_metrics.csv')
     val_log_csv_path = os.path.join(log_dir, 'val_metrics.csv')
     train_loader = DataLoader(train_ds, batch_size=2, 
-                              shuffle=True, num_workers=0)
+                              shuffle=True, num_workers=12)
 
     def val_collate(batch):
         # no collate required for validation.
@@ -151,7 +151,7 @@ def train_epochs(patience, data_dir, output_dir, patch_shape=None):
         return batch[0]
     
     val_loader = DataLoader(val_ds, batch_size=1,
-                            shuffle=True, num_workers=0,
+                            shuffle=True, num_workers=12,
                             collate_fn=val_collate)
     cnn = UNet3D(im_channels=1, out_channels=2).cuda()
     cnn = nn.DataParallel(cnn)
