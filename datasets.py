@@ -22,11 +22,12 @@ from torch.utils.data import Dataset, DataLoader
 from data_prep import load_im_and_heart
 import random
 
-random.seed(42)
+
 
 def create_train_val_split(data_dir):
     all_fnames = os.listdir(data_dir)
     # 34 in the train set and 8 in the validation set and 8 in the test set.
+    random.seed(42)
     random.shuffle(sorted(all_fnames))
     train_set = all_fnames[:34]
     val_set = all_fnames[34:42]
