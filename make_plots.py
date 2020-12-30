@@ -56,19 +56,50 @@ def load_train_dice():
     return seconds[:200], dices[:200]
 
 
-def plot_train_dice():
-    _, dices = load_train_dice()
+def plot_dice(log_dir):
+    # First plot dice over epochs for both training and validation.
     plt.figure(figsize=(16, 9))
     clrs = sns.color_palette("husl", 5)
     with sns.axes_style('white'):
-        epochs = range(len(dices))
-        #plt.yticks(np.arange(0, 36, 2))
-        plt.plot(epochs, dices, label=f'dice', c=clrs[0])
         plt.grid()
+        for run_dir in os.listdir(log_dir):
+            if run_dir != 'plots':
+                train_csv = os.path.join(log_dir, run_dir, 'train_metrics.csv')
+                seconds, dices = load_csv(train_csv,
+                                          ['seconds', 'dice'],
+                                          [float, float])
+                dices = np.array(dices)
+                dices[np.isnan(dices)] = 0
+                epochs = range(len(dices))
+                #plt.yticks(np.arange(0, 36, 2))
+                p = plt.plot(epochs, dices,
+                             label=f'training dice {run_dir}, max: {round(max(dices), 3)}')
+
+                prev_color = p[0].get_color()
+
+                val_csv = os.path.join(log_dir, run_dir, 'val_metrics.csv')
+                seconds, dices = load_csv(val_csv,
+                                          ['seconds', 'dice'],
+                                          [float, float])
+                dices = np.array(dices)
+                dices[np.isnan(dices)] = 0
+                epochs = range(len(dices))
+                #plt.yticks(np.arange(0, 36, 2))
+                plt.plot(epochs, dices, color=prev_color,
+                         label=f'validation dice {run_dir}, max: {round(max(dices), 3)}',
+                         linestyle='--')
+
         # plt.fill_between(idx, means-stds, means+stds,
         #                  alpha=0.3, facecolor=clrs[0])
         plt.legend()
-    plt.savefig('plots/train_dice_quarter_res.png')
+
+    if not os.path.isdir(os.path.join(log_dir, 'plots')):
+        os.makedirs(os.path.join(log_dir, 'plots'))
+
+    # Then plot dice over time (minutes) for both training and validation.
+    fig_path = os.path.join(log_dir, 'plots', 'train_val_dice_epochs.png')
+    print('saving figure to ', fig_path)
+    plt.savefig(fig_path)
 
 
 def show_central_heart_slice(input_dir, im_dir_name = '1'):
@@ -86,6 +117,6 @@ def show_central_heart_slice(input_dir, im_dir_name = '1'):
         imsave(f'slices/central_slice_{i}.png', im_for_show)
 
 if __name__ == '__main__':
-    output_dir = os.path.join('data', 'ThoracicOAR_eighth')
+    # output_dir = os.path.join('data', 'ThoracicOAR_eighth')
     # show_central_heart_slice(output_dir, im_dir_name = '1')
-    plot_train_dice()
+    plot_dice('train_output/struct_seg_heart_quarter')
