@@ -49,7 +49,7 @@ class ImageDataset(Dataset):
             
         self.im_names = im_names
         self.parent_dir = parent_folder_path
-        self.path_shape = patch_shape
+        self.patch_shape = patch_shape
 
     def __len__(self):
         return len(self.im_names)
