@@ -30,62 +30,116 @@ from metrics import (get_metrics_from_arrays,
                      get_metric_header_str)
 from datasets import create_datasets
 
+def run_epoch(dataloader, cnn, optimizer, loss_fn, update_weights):
+    start = time.time()
+    tps = []
+    tns = []
+    fps = []
+    fns = []
+    losses = []
+    for step, (image_batch, labels_batch) in enumerate(dataloader):
+        print('step', step, end='\r')
+        optimizer.zero_grad()
+        outputs = cnn(image_batch.cuda())
+        labels_batch  = labels_batch.cuda().long()
+        loss = loss_fn(outputs, labels_batch)
+        losses.append(loss.cpu().item())
+        preds_int = torch.argmax(outputs, 1)
+        foregrounds_int = labels_batch
+        tps.append(torch.sum((foregrounds_int == 1) *
+                             (preds_int == 1)).cpu().numpy())
+        tns.append(torch.sum((foregrounds_int == 0) *
+                             (preds_int == 0)).cpu().numpy())
+        fps.append(torch.sum((foregrounds_int == 0) *
+                             (preds_int == 1)).cpu().numpy())
+        fns.append(torch.sum((foregrounds_int == 1) *
+                             (preds_int == 0)).cpu().numpy())
+        if update_weights:
+            loss.backward()
+            optimizer.step()
+    
+    return (np.sum(tps), np.sum(fps),
+        np.sum(tns), np.sum(fns),
+        np.mean(losses))
 
-def train_network(train_ds, epochs, log_path):
+
+def train_epochs(patience, data_dir, output_dir):
     """ Train a network for {epochs}
         using data from {train_ds}.
         Retrun metrics at the end of each epoch.
     """
-    dataloader = DataLoader(train_ds, batch_size=10, 
+    if not os.path.isdir(output_dir):
+        print('Create output_dir', output_dir)
+        os.makedirs(output_dir)
+
+    train_ds, val_ds, test_ds = create_datasets(data_dir)
+    
+    # output directory is where everything is saved
+    # including logs of model performance during training.
+    # and models saved during training.
+    # We assume there will be some reporition. So the output dir will
+    # contain subfolders numbered chronologically i.e 1,2,3,4
+    total_runs = len(os.listdir(output_dir))
+    log_dir = os.path.join(output_dir, str(total_runs))
+    os.makedirs(log_dir)
+    model_dir = os.path.join(log_dir, 'models')
+    os.makedirs(model_dir)
+
+    train_log_csv_path = os.path.join(log_dir, 'train_metrics.csv')
+    val_log_csv_path = os.path.join(log_dir, 'val_metrics.csv')
+    train_loader = DataLoader(train_ds, batch_size=10, 
+                              shuffle=True, num_workers=12)
+    val_loader = DataLoader(val_ds, batch_size=16,
                             shuffle=True, num_workers=12)
     cnn = UNet3D(im_channels=1, out_channels=2).cuda()
     cnn = nn.DataParallel(cnn)
     optimizer = torch.optim.SGD(cnn.parameters(), lr=0.01,
                                 momentum=0.9, nesterov=True)
     loss_fn = combined_loss
-    train_log = open(log_path, 'w+')
-    print(get_metric_header_str(), file=train_log)
-    metric_list = []
+    train_log = open(train_log_csv_path, 'w+')
+    val_log = open(val_log_csv_path, 'w+')
+    print(get_metric_header_str() + ',loss', file=train_log)
+    print(get_metric_header_str() + ',loss', file=val_log)
+    best_dice = 0
+    epochs_without_progress = 0
+    epoch = 0
     train_start = time.time()
-    print('start training epochs')
-    for i in range(epochs):
-        start = time.time()
-        print('start epoch', i)
-        tps = []
-        tns = []
-        fps = []
-        fns = []
-        for step, (image_batch, labels_batch) in enumerate(dataloader):
-            print('step', step, end='\r')
-            optimizer.zero_grad()
-            outputs = cnn(image_batch.cuda())
-            labels_batch  = labels_batch.cuda().long()
-            loss = loss_fn(outputs, labels_batch)
-            loss.backward()
-            optimizer.step()
-            preds_int = torch.argmax(outputs, 1)
-            foregrounds_int = labels_batch
-            tps.append(torch.sum((foregrounds_int == 1) *
-                                 (preds_int == 1)).cpu().numpy())
-            tns.append(torch.sum((foregrounds_int == 0) *
-                                 (preds_int == 0)).cpu().numpy())
-            fps.append(torch.sum((foregrounds_int == 0) *
-                                 (preds_int == 1)).cpu().numpy())
-            fns.append(torch.sum((foregrounds_int == 1) *
-                                 (preds_int == 0)).cpu().numpy())
-        m = get_metrics(np.sum(tps), np.sum(fps), np.sum(tns), np.sum(fns))
-        print('epoch', i, get_metrics_str(m),
-              'duration', round(time.time() - start, 2))
-        print(f'{get_metric_csv_row(m, train_start)}', file=train_log)
-        metric_list.append(m)
-    return metric_list
+    while epochs_without_progress < patience:
+        epoch += 1
+        # Train
+        cnn.train()
+        epoch_result = run_epoch(train_loader, cnn, optimizer,
+                                 combined_loss, update_weights=True)
+        (tps, fps, tns, fns, mean_loss) = epoch_result
+        train_m = get_metrics(np.sum(tps), np.sum(fps), np.sum(tns), np.sum(fns))
+        print(f'{get_metric_csv_row(train_m, train_start)},{round(mean_loss, 4)}', file=train_log)
+        print('epoch', epoch, 'train', get_metrics_str(train_m))
+        # Validation
+        cnn.eval()
+        epoch_result = run_epoch(val_loader, cnn, optimizer,
+                                 combined_loss, update_weights=False)
+        (tps, fps, tns, fns, mean_loss) = epoch_result
+        val_m = get_metrics(np.sum(tps), np.sum(fps), np.sum(tns), np.sum(fns))
+        print(f'{get_metric_csv_row(val_m, train_start)},{round(mean_loss, 4)}',
+              file=val_log)
+        print('epoch', epoch, 'val', get_metrics_str(val_m))
+        # Checkpoint and early stopping.
+        if val_m['dice'] > best_dice:
+            epochs_without_progress = 0
+            print('dice improved from', best_dice, 'to', val_m['dice'])
+            best_dice = val_m['dice']
+            total_models = len(os.listdir(model_dir))
+            new_model_path = os.path.join(model_dir, f'{total_models}_epoch_{epoch}_dice_{round(best_dice, 4)}')
+            print('saving model to ', new_model_path)
+            torch.save(cnn, new_model_path)
+        else:
+            epochs_without_progress += 1
+
+    print(f'Training finished as {epochs_without_progress}', 'epochs without progress')
 
 
 if __name__ == '__main__':
-    data_dir = os.path.join('data', 'ThoracicOAR_quarter')
-    train_ds, val_ds, test_ds = create_datasets(data_dir)
-    total_logs = len(os.listdir('logs'))
-    log_csv_path = f'logs/train_metrics_combined_{total_logs}.csv'
-    metric_list = train_network(train_ds, 200, log_csv_path)
-    print('metric_list', metric_list)
-    print('metric_list', [m['dice'] for m in metric_list])
+    for i in range(10):
+        train_epochs(patience=60,
+                     data_dir=os.path.join('data', 'ThoracicOAR_quarter'),
+                     output_dir='train_output/struct_seg_heart_quarter')
