@@ -64,47 +64,46 @@ def plot_dice(log_dir):
         with sns.axes_style('white'):
             plt.grid()
             plt.yticks(np.arange(0, 1.025, 0.025))
-            for run_dir in os.listdir(log_dir):
-                if run_dir != 'plots':
-                    train_csv = os.path.join(log_dir, run_dir, 'train_metrics.csv')
-                    seconds, dices = load_csv(train_csv,
-                                              ['seconds', 'dice'],
-                                              [float, float])
-                    minutes = [s/60 for s in seconds]
-                    dices = np.array(dices)
-                    dices[np.isnan(dices)] = 0
-                    epochs = range(len(dices))
-                    #plt.yticks(np.arange(0, 36, 2))
-                    p = None
-                    plt.ylabel('dice')
-                    if x_axis == 'time':
-                        plt.xlabel('minutes')
-                        p = plt.plot(minutes, dices,
-                                     label=f'training dice {run_dir}, max: {round(max(dices), 3)}')
-                    else:
-                        plt.xlabel('epochs')
-                        p = plt.plot(epochs, dices,
-                                     label=f'training dice {run_dir}, max: {round(max(dices), 3)}')
+            runs_dir = os.path.join(log_dir, 'runs')
+            for run_dir in os.listdir(runs_dir):
+                train_csv = os.path.join(runs_dir, run_dir, 'train_metrics.csv')
+                seconds, dices = load_csv(train_csv,
+                                          ['seconds', 'dice'],
+                                          [float, float])
+                minutes = [s/60 for s in seconds]
+                dices = np.array(dices)
+                dices[np.isnan(dices)] = 0
+                epochs = range(len(dices))
+                #plt.yticks(np.arange(0, 36, 2))
+                p = None
+                plt.ylabel('dice')
+                if x_axis == 'time':
+                    plt.xlabel('minutes')
+                    p = plt.plot(minutes, dices,
+                                 label=f'training dice {run_dir}, max: {round(max(dices), 3)}')
+                else:
+                    plt.xlabel('epochs')
+                    p = plt.plot(epochs, dices,
+                                 label=f'training dice {run_dir}, max: {round(max(dices), 3)}')
 
-                    prev_color = p[0].get_color()
-
-                    val_csv = os.path.join(log_dir, run_dir, 'val_metrics.csv')
-                    seconds, dices = load_csv(val_csv,
-                                              ['seconds', 'dice'],
-                                              [float, float])
-                    dices = np.array(dices)
-                    dices[np.isnan(dices)] = 0
-                    epochs = range(len(dices))
-                    #plt.yticks(np.arange(0, 36, 2))
-                    p = None
-                    if x_axis == 'time':
-                        plt.plot(minutes, dices, color=prev_color,
-                                 label=f'validation dice {run_dir}, max: {round(max(dices), 3)}',
-                                 linestyle='--')
-                    else:
-                        plt.plot(epochs, dices, color=prev_color,
-                                 label=f'validation dice {run_dir}, max: {round(max(dices), 3)}',
-                                 linestyle='--')
+                prev_color = p[0].get_color()
+                val_csv = os.path.join(runs_dir, run_dir, 'val_metrics.csv')
+                seconds, dices = load_csv(val_csv,
+                                          ['seconds', 'dice'],
+                                          [float, float])
+                dices = np.array(dices)
+                dices[np.isnan(dices)] = 0
+                epochs = range(len(dices))
+                #plt.yticks(np.arange(0, 36, 2))
+                p = None
+                if x_axis == 'time':
+                    plt.plot(minutes, dices, color=prev_color,
+                             label=f'validation dice {run_dir}, max: {round(max(dices), 3)}',
+                             linestyle='--')
+                else:
+                    plt.plot(epochs, dices, color=prev_color,
+                             label=f'validation dice {run_dir}, max: {round(max(dices), 3)}',
+                             linestyle='--')
 
             # plt.fill_between(idx, means-stds, means+stds,
             #                  alpha=0.3, facecolor=clrs[0])
@@ -136,4 +135,5 @@ def show_central_heart_slice(input_dir, im_dir_name = '1'):
 if __name__ == '__main__':
     # output_dir = os.path.join('data', 'ThoracicOAR_eighth')
     # show_central_heart_slice(output_dir, im_dir_name = '1')
-    plot_dice('train_output/struct_seg_heart_quarter_adam_less_cx')
+    # plot_dice('train_output/struct_seg_heart_quarter_adam_less_cx')
+    plot_dice('train_output/struct_seg_heart_full')
