@@ -127,11 +127,59 @@ def create_smaller_size_dataset(input_dir, output_dir, scale):
                               scaled_im_data,
                               scaled_im_labels)
 
+
+def create_cropped_dataset(input_dir, output_dir, output_shape):
+    im_dir_names = os.listdir(input_dir)
+    # if the folder doesn't exist then create it
+    if not os.path.isdir(output_dir):
+        os.makedirs(output_dir)
+
+    # depth is scaled twice. It is already undersampled.
+    for im_name in im_dir_names:
+        full_im_data_dir = os.path.join(input_dir, im_name)
+        cropped_im_data_dir = os.path.join(output_dir, im_name)
+        print('checking', im_name, end=',')
+        if not os.path.isdir(cropped_im_data_dir):
+            os.makedirs(cropped_im_data_dir)
+            # get data and heart labels for a patch with the heart in it
+            image_data, heart_labels = load_im_and_heart(full_im_data_dir)
+            label_coords = np.argwhere(heart_labels == 1) 
+            zs = label_coords[:, 0]
+            ys = label_coords[:, 1]
+            xs = label_coords[:, 2]
+            z_mid = np.min(zs) + (np.max(zs) - np.min(zs))
+            y_mid = np.min(ys) + (np.max(ys) - np.min(ys))
+            x_mid = np.min(xs) + (np.max(xs) - np.min(xs))
+
+            # for crop
+            z_min = z_mid - (output_shape[0] // 2)
+            y_min = y_mid - (output_shape[1] // 2)
+            x_min = x_mid - (output_shape[2] // 2)
+
+            cropped_im = image_data[z_min:z_min+output_shape[0],
+                                    y_min:y_min+output_shape[1],
+                                    x_min:x_min+output_shape[2]]
+
+
+            cropped_annot = heart_labels[z_min:z_min+output_shape[0],
+                                         y_min:y_min+output_shape[1],
+                                         x_min:x_min+output_shape[2]]
+
+            assert cropped_im.shape == output_shape
+            assert cropped_annot.shape == output_shape
+
+            save_im_and_heart(cropped_im_data_dir,
+                              cropped_im,
+                              cropped_annot)
+
 if __name__ == '__main__':
     input_dir = os.path.join('data', 'ThoracicOAR')
     # output_dir = os.path.join('data', 'ThoracicOAR_half')
     # output_dir = os.path.join('data', 'ThoracicOAR_eighth')
-    output_dir = os.path.join('data', 'ThoracicOAR_quarter')
+    #output_dir = os.path.join('data', 'ThoracicOAR_quarter')
     #create_smaller_size_dataset(input_dir, output_dir, 1/8)
-    create_smaller_size_dataset(input_dir, output_dir, 1/4)
+    # create_smaller_size_dataset(input_dir, output_dir, 1/4)
     # mean_input_shape = get_mean_shape(output_dir)
+
+    output_dir = os.path.join('data', 'ThoracicOAR_cropped')
+    create_cropped_dataset(input_dir, output_dir, output_shape=(64,256,256))
