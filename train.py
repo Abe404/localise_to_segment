@@ -89,7 +89,7 @@ def train_epoch(dataloader, cnn, optimizer, loss_fn):
     fns = []
     losses = []
     for step, (image_batch, labels_batch) in enumerate(dataloader):
-        print('step', step, end='\r')
+        print('step', step, 'batch_shape', image_batch.shape, end='\r')
         optimizer.zero_grad()
         outputs = cnn(image_batch.cuda())
         labels_batch  = labels_batch.cuda().long()
@@ -113,7 +113,7 @@ def train_epoch(dataloader, cnn, optimizer, loss_fn):
         np.mean(losses))
 
 
-def train_epochs(patience, data_dir, output_dir, patch_shape=None):
+def train_epochs(patience, data_dir, output_dir, train_batch_size, patch_shape=None):
     """ Train a network for {epochs}
         using data from {train_ds}.
         Retrun metrics at the end of each epoch.
@@ -142,7 +142,7 @@ def train_epochs(patience, data_dir, output_dir, patch_shape=None):
 
     train_log_csv_path = os.path.join(log_dir, 'train_metrics.csv')
     val_log_csv_path = os.path.join(log_dir, 'val_metrics.csv')
-    train_loader = DataLoader(train_ds, batch_size=2, 
+    train_loader = DataLoader(train_ds, batch_size=train_batch_size, 
                               shuffle=True, num_workers=12)
 
     def val_collate(batch):
@@ -155,9 +155,9 @@ def train_epochs(patience, data_dir, output_dir, patch_shape=None):
                             collate_fn=val_collate)
     cnn = UNet3D(im_channels=1, out_channels=2).cuda()
     cnn = nn.DataParallel(cnn)
-    optimizer = torch.optim.Adam(cnn.parameters())
+    optimizer = torch.optim.Adam(cnn.parameters(), lr=0.0001)
     #optimizer = torch.optim.SGD(cnn.parameters(), lr=0.01,
-    #                            momentum=0.9, nesterov=True)
+    #                            momentum=0.99, nesterov=True)
     loss_fn = combined_loss
     train_log = open(train_log_csv_path, 'w+')
     val_log = open(val_log_csv_path, 'w+')
@@ -201,10 +201,20 @@ def train_epochs(patience, data_dir, output_dir, patch_shape=None):
     print(f'Training finished as {epochs_without_progress}',
            'epochs without progress')
 
+def train_full_res():
+    train_epochs(patience=20,
+                 data_dir=os.path.join('data', 'ThoracicOAR'),
+                 output_dir='train_output/struct_seg_heart_full',
+                 train_batch_size=2,
+                 patch_shape=(64,256,256))
+
+def train_quarter_res():
+    train_epochs(patience=20,
+                 data_dir=os.path.join('data', 'ThoracicOAR_quarter'),
+                 output_dir='train_output/struct_seg_heart_quarter_lr_1e-4',
+                 train_batch_size=10,
+                 patch_shape=(48,128,128)) # Full image size. No random cropping.
 
 if __name__ == '__main__':
     for i in range(6):
-        train_epochs(patience=20,
-                     data_dir=os.path.join('data', 'ThoracicOAR'),
-                     output_dir='train_output/struct_seg_heart_full',
-                     patch_shape=(64,256,256))
+        train_quarter_res()
