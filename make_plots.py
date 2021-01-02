@@ -137,5 +137,6 @@ if __name__ == '__main__':
     # show_central_heart_slice(output_dir, im_dir_name = '1')
     # plot_dice('train_output/struct_seg_heart_quarter_adam_less_cx')
     #plot_dice('train_output/struct_seg_heart_full')
-    plot_dice('train_output/struct_seg_heart_quarter_lr_1e-4')
+    # plot_dice('train_output/struct_seg_heart_quarter_lr_1e-4')
+    plot_dice('train_output/struct_seg_heart_cropped')
     #plot_dice('train_output/struct_seg_heart_quarter_30')
