@@ -172,14 +172,14 @@ def create_cropped_dataset(input_dir, output_dir, output_shape):
                               cropped_im,
                               cropped_annot)
 
-if __name__ == '__main__':
+                    
+def create_cropped_ground_truth():
     input_dir = os.path.join('data', 'ThoracicOAR')
-    # output_dir = os.path.join('data', 'ThoracicOAR_half')
-    # output_dir = os.path.join('data', 'ThoracicOAR_eighth')
-    #output_dir = os.path.join('data', 'ThoracicOAR_quarter')
-    #create_smaller_size_dataset(input_dir, output_dir, 1/8)
-    # create_smaller_size_dataset(input_dir, output_dir, 1/4)
-    # mean_input_shape = get_mean_shape(output_dir)
-
     output_dir = os.path.join('data', 'ThoracicOAR_cropped')
     create_cropped_dataset(input_dir, output_dir, output_shape=(64,256,256))
+
+def create_quarter_res_data():
+    create_smaller_size_dataset(input_dir, output_dir, 1/4)
+
+
+#if __name__ == '__main__':
