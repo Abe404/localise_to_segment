@@ -1,6 +1,7 @@
 train_output/*/models
 train_output/*/*/models
 train_output/*/*/*/models
+train_output/*/runs/*/seg
 texfig.py
 env/
 data/
