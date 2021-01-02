@@ -126,6 +126,9 @@ def train_epochs(patience, data_dir, output_dir, train_batch_size, patch_shape=N
     if not os.path.isdir(output_dir):
         print('Create output_dir', output_dir)
         os.makedirs(output_dir)
+        runs_dir = os.path.join(output_dir, 'runs')
+        if not os.path.isdir(runs_dir):
+            os.makedirs(runs_dir)
 
     train_ds, val_ds, test_ds = create_datasets(data_dir, patch_shape)
     
@@ -134,8 +137,8 @@ def train_epochs(patience, data_dir, output_dir, train_batch_size, patch_shape=N
     # and models saved during training.
     # We assume there will be some reporition. So the output dir will
     # contain subfolders numbered chronologically i.e 1,2,3,4
-    total_runs = len(os.listdir(output_dir))
-    log_dir = os.path.join(output_dir, str(total_runs))
+    total_runs = len(os.listdir(runs_dir))
+    log_dir = os.path.join(runs_dir, str(total_runs))
     os.makedirs(log_dir)
     model_dir = os.path.join(log_dir, 'models')
     os.makedirs(model_dir)
