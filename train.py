@@ -227,7 +227,6 @@ def train_cropped():
                  train_batch_size=2,
                  patch_shape=(64,256,256)) # Full image size. No random cropping.
 
-
 if __name__ == '__main__':
     for i in range(6):
         train_cropped()
