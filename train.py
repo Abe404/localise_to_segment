@@ -227,6 +227,14 @@ def train_cropped():
                  train_batch_size=2,
                  patch_shape=(64,256,256)) # Full image size. No random cropping.
 
+def train_cropped_by_network():
+    train_epochs(patience=20,
+                 data_dir=os.path.join('data', 'ThoracicOAR_cropped_using_network'),
+                 output_dir='train_output/struct_seg_heart_cropped_by_network',
+                 train_batch_size=2,
+                 patch_shape=(64,256,256)) # Full image size. No random cropping.
+
+
 if __name__ == '__main__':
     for i in range(6):
-        train_cropped()
+        train_cropped_by_network()
