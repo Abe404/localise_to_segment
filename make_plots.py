@@ -130,7 +130,7 @@ def show_central_heart_slice(input_dir, im_dir_name = '1'):
         slice_im = image_data[i]
         slice_labels = heart_labels[i]
         im_for_show = np.hstack((slice_im, slice_labels*np.max(slice_im)))
-        imsave(f'slices/central_slice_{i}.png', im_for_show)
+        imsave(f'slices/central_slice_{str(i).zfill(3)}.png', im_for_show)
 
 if __name__ == '__main__':
     # output_dir = os.path.join('data', 'ThoracicOAR_eighth')
@@ -138,5 +138,8 @@ if __name__ == '__main__':
     # plot_dice('train_output/struct_seg_heart_quarter_adam_less_cx')
     #plot_dice('train_output/struct_seg_heart_full')
     # plot_dice('train_output/struct_seg_heart_quarter_lr_1e-4')
-    plot_dice('train_output/struct_seg_heart_cropped')
+    # plot_dice('train_output/struct_seg_heart_cropped')
     #plot_dice('train_output/struct_seg_heart_quarter_30')
+    
+    # I think i screwed up here. 
+    show_central_heart_slice('data/ThoracicOAR_cropped', im_dir_name = '1')
