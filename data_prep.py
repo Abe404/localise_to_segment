@@ -24,6 +24,7 @@ from torch.utils.data import Dataset, DataLoader
 
 from skimage.transform import resize
 from skimage import img_as_float
+from skimage import measure
 import shutil
 
 
@@ -128,6 +129,47 @@ def create_smaller_size_dataset(input_dir, output_dir, scale):
                               scaled_im_labels)
 
 
+def get_crop_coords(seg, output_shape):
+    labels = measure.label(seg == 1, background=0)
+    largest_label = None
+    # ignore background
+    unique_labels = [l for l in np.unique(labels) if l > 0]
+    label_sums = [np.sum(labels == l) for l in unique_labels]
+    # restrict to biggesr region (the organ hopefully)
+    label_sum, largest_fg_label = sorted(zip(label_sums, unique_labels),
+                                         reverse=True)[0]
+    # restrict to single largest region
+    seg[labels != largest_fg_label] = 0
+    label_coords = np.argwhere(seg == 1)
+
+    zs = label_coords[:, 0]
+    ys = label_coords[:, 1]
+    xs = label_coords[:, 2]
+
+    depth = np.max(zs) - np.min(zs)
+    height = np.max(ys) - np.min(ys)
+    width = np.max(xs) - np.min(xs)
+    print('depth', depth, 'height', height, 'width', width)
+
+    z_mid = np.min(zs) + (depth / 2)
+    y_mid = np.min(ys) + (height / 2)
+    x_mid = np.min(xs) + (width / 2)
+
+    # for crop
+    z_min = z_mid - (output_shape[0] // 2)
+    y_min = y_mid - (output_shape[1] // 2)
+    x_min = x_mid - (output_shape[2] // 2)
+
+    # for crop
+    z_max = z_min + output_shape[0]
+    y_max = y_min + output_shape[1]
+    x_max = x_min + output_shape[2]
+
+    # round to integers as will be used for cropping voxels
+    return (round(z_min), round(y_min), round(x_min),
+            round(z_max), round(y_max), round(x_max))
+            
+        
 def create_cropped_dataset(input_dir, output_dir, output_shape):
     im_dir_names = os.listdir(input_dir)
     # if the folder doesn't exist then create it
@@ -143,29 +185,39 @@ def create_cropped_dataset(input_dir, output_dir, output_shape):
             os.makedirs(cropped_im_data_dir)
             # get data and heart labels for a patch with the heart in it
             image_data, heart_labels = load_im_and_heart(full_im_data_dir)
-            label_coords = np.argwhere(heart_labels == 1) 
-            zs = label_coords[:, 0]
-            ys = label_coords[:, 1]
-            xs = label_coords[:, 2]
-            z_mid = np.min(zs) + (np.max(zs) - np.min(zs))
-            y_mid = np.min(ys) + (np.max(ys) - np.min(ys))
-            x_mid = np.min(xs) + (np.max(xs) - np.min(xs))
-
-            # for crop
-            z_min = z_mid - (output_shape[0] // 2)
-            y_min = y_mid - (output_shape[1] // 2)
-            x_min = x_mid - (output_shape[2] // 2)
-
-            cropped_im = image_data[z_min:z_min+output_shape[0],
-                                    y_min:y_min+output_shape[1],
-                                    x_min:x_min+output_shape[2]]
 
 
-            cropped_annot = heart_labels[z_min:z_min+output_shape[0],
-                                         y_min:y_min+output_shape[1],
-                                         x_min:x_min+output_shape[2]]
+            # pad both image and lables by 128 before cropping.
+            # Even a heart right on the edge will have have a boundary (it will just be black)
 
-            assert cropped_im.shape == output_shape
+            image_data = np.pad(image_data, 
+                                ((output_shape[0]//2, output_shape[0]//2),
+                                 (output_shape[1]//2, output_shape[1]//2),
+                                 (output_shape[2]//2, output_shape[2]//2)),
+                                constant_values = 0,
+                                mode='constant')
+
+            heart_labels = np.pad(heart_labels, 
+                                  ((output_shape[0]//2, output_shape[0]//2),
+                                   (output_shape[1]//2, output_shape[1]//2),
+                                   (output_shape[2]//2, output_shape[2]//2)),
+                                  constant_values = 0,
+                                  mode='constant')
+
+            (z_min, y_min, x_min,
+             z_max, y_max, x_max) = get_crop_coords(heart_labels, output_shape)
+
+            print('z_min:z_max', z_min, z_max)
+            print('image data shape = ', image_data.shape)
+            cropped_im = image_data[z_min:z_max,
+                                    y_min:y_max,
+                                    x_min:x_max]
+
+            cropped_annot = heart_labels[z_min:z_max,
+                                         y_min:y_max,
+                                         x_min:x_max]
+
+            assert cropped_im.shape == output_shape, cropped_im.shape
             assert cropped_annot.shape == output_shape
 
             save_im_and_heart(cropped_im_data_dir,
@@ -181,5 +233,5 @@ def create_cropped_ground_truth():
 def create_quarter_res_data():
     create_smaller_size_dataset(input_dir, output_dir, 1/4)
 
-
-#if __name__ == '__main__':
+if __name__ == '__main__':
+    create_cropped_ground_truth()
