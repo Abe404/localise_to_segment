@@ -126,9 +126,11 @@ def train_epochs(patience, data_dir, output_dir, train_batch_size, patch_shape=N
     if not os.path.isdir(output_dir):
         print('Create output_dir', output_dir)
         os.makedirs(output_dir)
-        runs_dir = os.path.join(output_dir, 'runs')
-        if not os.path.isdir(runs_dir):
-            os.makedirs(runs_dir)
+   
+    runs_dir = os.path.join(output_dir, 'runs')
+    if not os.path.isdir(runs_dir):
+        os.makedirs(runs_dir)
+
 
     train_ds, val_ds, test_ds = create_datasets(data_dir, patch_shape)
     
@@ -223,7 +225,7 @@ def train_quarter_res():
 def train_cropped():
     train_epochs(patience=20,
                  data_dir=os.path.join('data', 'ThoracicOAR_cropped'),
-                 output_dir='train_output/struct_seg_heart_cropped',
+                 output_dir='exp_output/struct_seg_heart_cropped_fixed',
                  train_batch_size=2,
                  patch_shape=(64,256,256)) # Full image size. No random cropping.
 
@@ -237,4 +239,4 @@ def train_cropped_by_network():
 
 if __name__ == '__main__':
     for i in range(6):
-        train_cropped_by_network()
+        train_cropped()
