@@ -1,7 +1,7 @@
-train_output/*/models
-train_output/*/*/models
-train_output/*/*/*/models
-train_output/*/runs/*/seg
+exp_output/*/models
+exp_output/*/*/models
+exp_output/*/*/*/models
+exp_output/*/runs/*/seg
 texfig.py
 env/
 data/

@@ -41,7 +41,7 @@ def create_struct_seg_quarter_segmentations():
     all_fnames = os.listdir(data_dir)
     patch_shape = (48, 128, 128)
 
-    exp_output_dir = 'train_output/struct_seg_heart_quarter_30/runs/0'
+    exp_output_dir = 'exp_output/struct_seg_heart_quarter_30/runs/0'
     model_path = os.path.join(exp_output_dir, 'models',
                               '23_epoch_109_dice_0.8937')
     
@@ -83,7 +83,8 @@ def get_full_res_cropped_by_net_performance():
     data_dir = 'data/ThoracicOAR'
     quarter_dir = 'data/ThoracicOAR_quarter'
     all_fnames = os.listdir(data_dir)
-    model_path = 'train_output/struct_seg_heart_cropped/runs/1/models/17_epoch_47_dice_0.9366'
+    #model_path = 'exp_output/struct_seg_heart_cropped/runs/1/models/17_epoch_47_dice_0.9366'  # gave dice of 0.9134
+    model_path = 'exp_output/struct_seg_heart_cropped/runs/4/models/17_epoch_62_dice_0.9354'
     fine_cnn = torch.load(model_path).cuda()
     fine_cnn = nn.DataParallel(fine_cnn)
     fine_cnn.eval()
@@ -93,7 +94,7 @@ def get_full_res_cropped_by_net_performance():
     tns = []
     fps = []
     fns = []
-    quarter_seg_dir = 'train_output/struct_seg_heart_quarter_30/runs/0/seg'
+    quarter_seg_dir = 'exp_output/struct_seg_heart_quarter_30/runs/0/seg'
 
     _, val, _ = create_train_val_test_split(data_dir)
 
@@ -157,6 +158,9 @@ def get_full_res_cropped_by_net_performance():
         # get the predicted region using the cropped 3D network.
         cropped_segmented = segment(fine_cnn, cropped_im, 2,
                                     patch_shape, patch_shape)
+
+        labels2 = measure.label(cropped_segmented == 1, background=0)
+        print('seg labels count = ', len(np.unique(labels2)))
 
         preds[z_min:z_min+patch_shape[0],
               y_min:y_min+patch_shape[1],
