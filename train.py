@@ -210,16 +210,23 @@ def train_epochs(patience, data_dir, output_dir, train_batch_size, patch_shape=N
 def train_full_res():
     train_epochs(patience=20,
                  data_dir=os.path.join('data', 'ThoracicOAR'),
-                 output_dir='train_output/struct_seg_heart_full',
+                 output_dir='exp_output/struct_seg_heart_full',
                  train_batch_size=2,
                  patch_shape=(64,256,256))
 
 def train_quarter_res():
     train_epochs(patience=20,
                  data_dir=os.path.join('data', 'ThoracicOAR_quarter'),
-                 output_dir='train_output/struct_seg_heart_quarter_30',
+                 output_dir='exp_output/struct_seg_heart_quarter_30',
                  train_batch_size=10,
                  patch_shape=(48,128,128)) # Full image size. No random cropping.
+
+def train_64_256_res():
+    train_epochs(patience=20,
+                 data_dir=os.path.join('data', 'ThoracicOAR_scaled_64_256'),
+                 output_dir='exp_output/struct_seg_heart_scaled_64_256',
+                 train_batch_size=2,
+                 patch_shape=(64,256,256)) # Full image size. No random cropping.
 
 
 def train_cropped():
@@ -232,11 +239,11 @@ def train_cropped():
 def train_cropped_by_network():
     train_epochs(patience=20,
                  data_dir=os.path.join('data', 'ThoracicOAR_cropped_using_network'),
-                 output_dir='train_output/struct_seg_heart_cropped_by_network',
+                 output_dir='exp_output/struct_seg_heart_cropped_by_network',
                  train_batch_size=2,
                  patch_shape=(64,256,256)) # Full image size. No random cropping.
 
 
 if __name__ == '__main__':
     for i in range(6):
-        train_cropped()
+        train_64_256_res()
