@@ -139,7 +139,7 @@ if __name__ == '__main__':
     #plot_dice('train_output/struct_seg_heart_full')
     # plot_dice('train_output/struct_seg_heart_quarter_lr_1e-4')
     # plot_dice('train_output/struct_seg_heart_cropped')
-    #plot_dice('train_output/struct_seg_heart_quarter_30')
+    plot_dice('exp_output/struct_seg_heart_scaled_64_256')
     
     # I think i screwed up here. 
-    show_central_heart_slice('data/ThoracicOAR_cropped', im_dir_name = '1')
+    #show_central_heart_slice('data/ThoracicOAR_cropped', im_dir_name = '1')
