@@ -89,19 +89,23 @@ def get_mean_shape(input_dir):
     return (np.mean(depths), np.mean(heights), np.mean(widths))
         
 
-def create_smaller_size_dataset(input_dir, output_dir, scale):
+def create_smaller_size_dataset(input_dir, output_dir, scale, output_shape=None):
     im_dir_names = os.listdir(input_dir)
     # if the folder doesn't exist then create it
     if not os.path.isdir(output_dir):
         os.makedirs(output_dir)
+    if output_shape is None:
+        # first get the mean shape of the input images.
+        mean_input_shape = get_mean_shape(input_dir)
+        
+        print('mean input shape', mean_input_shape)
+        # depth is scaled twice. It is already undersampled.
+        scaled_shape = (2 * round(mean_input_shape[0] * scale),
+                        round(mean_input_shape[1] * scale),
+                        round(mean_input_shape[2] * scale))
+    else:
+        scaled_shape = output_shape
 
-    # first get the mean shape of the input images.
-    mean_input_shape = get_mean_shape(input_dir)
-    # depth is scaled twice. It is already undersampled.
-    scaled_shape = (2 * round(mean_input_shape[0] * scale),
-                    round(mean_input_shape[1] * scale),
-                    round(mean_input_shape[2] * scale))
-    print('mean input shape', mean_input_shape)
     print('scaled shape', scaled_shape)
     for im_name in im_dir_names:
         full_im_data_dir = os.path.join(input_dir, im_name)
@@ -234,4 +238,7 @@ def create_quarter_res_data():
     create_smaller_size_dataset(input_dir, output_dir, 1/4)
 
 if __name__ == '__main__':
-    create_cropped_ground_truth()
+    # create_cropped_ground_truth()
+    input_dir = os.path.join('data', 'ThoracicOAR')
+    output_dir = os.path.join('data', 'ThoracicOAR_scaled_64_256')
+    create_smaller_size_dataset(input_dir, output_dir, None, output_shape=(64, 256, 256))
