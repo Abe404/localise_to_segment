@@ -60,7 +60,7 @@ def load_train_dice():
 def plot_dice(log_dir, name):
     # First plot dice over epochs for both training and validation.
     for x_axis in ['time', 'epochs']:
-        #plt.figure(figsize=(16, 9))
+        plt.figure(figsize=(16, 9))
         clrs = sns.color_palette("husl", 5)
         with sns.axes_style('white'):
             plt.grid()
