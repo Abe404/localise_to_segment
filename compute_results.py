@@ -190,7 +190,7 @@ def baseline_metrics(cnn, data_dir, im_names):
     return dataset_metrics, image_metrics_list
 
 
-def compute_two_stage_metrics():
+def compute_val_two_stage_metrics():
     exp_dir = 'exp_output/results_collation_01'
     if not os.path.isdir(exp_dir):
         os.makedirs(exp_dir)
@@ -294,10 +294,14 @@ def compute_ttest():
     print('two stage against the baseline on test set - ttest', result)
 
 
-
 if __name__ == '__main__':
-    # compute_baseline_metrics()
-    # compute_val_baseline_metrics():
-    #compute_test_baseline_metrics()
-    # compute_two_stage_test_metrics()
+    # compute val results
+    compute_val_baseline_metrics()
+    compute_val_two_stage_metrics()
+
+    # compute test results 
+    compute_two_stage_test_metrics()
+    compute_test_baseline_metrics()
+
+    # Which method is better?
     compute_ttest()
