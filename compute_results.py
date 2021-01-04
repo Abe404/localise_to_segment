@@ -27,6 +27,7 @@ from segment_image import segment
 from data_prep import load_nifty, save_nifty, load_im_and_heart, get_heart_centroid
 from datasets import create_train_val_test_split
 from skimage.transform import resize
+from csv_utils import load_csv
 from metrics import (get_metrics_from_arrays,
                      get_metrics_str, get_metrics,
                      get_metric_csv_row,
@@ -228,6 +229,12 @@ def compute_baseline_metrics():
     print('csv saved to ', csv_path)
 
 
+def compute_ttest():
+    exp_dir = 'exp_output/results_collation_01'
+    baseline_csv_path = os.path.join(exp_dir, 'baseline.csv')
+    dices = load_csv(baseline_csv_path, ['dice'], [float])[0]
+    print('baseline dices')
 
 if __name__ == '__main__':
-   compute_baseline_metrics()
+    # compute_baseline_metrics()
+    compute_ttest()
