@@ -211,8 +211,27 @@ def compute_two_stage_metrics():
     print('csv saved to ', csv_path)
         
 
+def compute_two_stage_test_metrics():
+    exp_dir = 'exp_output/results_collation_01'
+    if not os.path.isdir(exp_dir):
+        os.makedirs(exp_dir)
+    csv_path = os.path.join(exp_dir, 'two_stage_test.csv')
+    csv_file = open(csv_path, 'w+')
+    print(get_metric_header_str() + ',run,dataset', file=csv_file)
+    data_dir = 'data/ThoracicOAR'
+    _, _, test_fnames = create_train_val_test_split(data_dir)
+    for run in [0, 1, 2, 3, 4]:
+        loc_cnn = get_best_loc_cnn_for_run(run)
+        fine_cnn = get_best_fine_cnn_for_run(run)
+        start = time.time()
+        metrics, im_metrics_list = two_stage_metrics(loc_cnn, fine_cnn,
+                                                     data_dir, test_fnames)
+        seg_dur = time.time() - start
+        print(get_metric_csv_row(metrics, start) + f',{run},test', file=csv_file)
+    print('csv saved to ', csv_path)
 
-def compute_baseline_metrics():
+
+def compute_val_baseline_metrics():
     baseline_exp_dir = 'exp_output/struct_seg_heart_full'
     exp_dir = 'exp_output/results_collation_01'
     csv_path = os.path.join(exp_dir, 'baseline.csv')
@@ -228,13 +247,57 @@ def compute_baseline_metrics():
         print(get_metric_csv_row(metrics, start) + f',{run},val', file=csv_file)
     print('csv saved to ', csv_path)
 
+def compute_test_baseline_metrics():
+    baseline_exp_dir = 'exp_output/struct_seg_heart_full'
+    exp_dir = 'exp_output/results_collation_01'
+    csv_path = os.path.join(exp_dir, 'baseline_test.csv')
+    csv_file = open(csv_path, 'w+')
+    print(get_metric_header_str() + ',run', file=csv_file)
+    data_dir = 'data/ThoracicOAR'
+    _, _, test_fnames = create_train_val_test_split(data_dir)
+    for run in [0, 1, 2, 3, 4, 5]:
+        cnn = get_best_cnn_for_run(baseline_exp_dir, run)
+        start = time.time()
+        metrics, im_metrics_list = baseline_metrics(cnn, data_dir, test_fnames)
+        seg_dur = time.time() - start
+        print(get_metric_csv_row(metrics, start) + f',{run}', file=csv_file)
+    print('csv saved to ', csv_path)
+
 
 def compute_ttest():
+
+    # Compute ttest for validation set results.
     exp_dir = 'exp_output/results_collation_01'
     baseline_csv_path = os.path.join(exp_dir, 'baseline.csv')
-    dices = load_csv(baseline_csv_path, ['dice'], [float])[0]
-    print('baseline dices')
+    baseline_dices = load_csv(baseline_csv_path, ['dice'], [float])[0]
+    print('baseline dices', baseline_dices)
+
+    two_stage_csv_path = os.path.join(exp_dir, 'two_stage.csv')
+    two_stage_dices = load_csv(two_stage_csv_path, ['dice'], [float])[0]
+    print('two stage dices', two_stage_dices)
+    
+    from scipy import stats
+    result = stats.ttest_ind(baseline_dices, two_stage_dices)
+    print('two stage against the baseline on validation set- ttest', result)
+    
+    # Compute ttest for test set results.
+    baseline_csv_path = os.path.join(exp_dir, 'baseline_test.csv')
+    baseline_dices = load_csv(baseline_csv_path, ['dice'], [float])[0]
+    print('baseline dices', baseline_dices)
+
+    two_stage_csv_path = os.path.join(exp_dir, 'two_stage_test.csv')
+    two_stage_dices = load_csv(two_stage_csv_path, ['dice'], [float])[0]
+    print('two stage dices', two_stage_dices)
+    
+    from scipy import stats
+    result = stats.ttest_ind(baseline_dices, two_stage_dices)
+    print('two stage against the baseline on test set - ttest', result)
+
+
 
 if __name__ == '__main__':
     # compute_baseline_metrics()
+    # compute_val_baseline_metrics():
+    #compute_test_baseline_metrics()
+    # compute_two_stage_test_metrics()
     compute_ttest()
