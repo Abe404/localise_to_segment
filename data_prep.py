@@ -139,10 +139,10 @@ def get_heart_centroid(seg):
     largest_label = None
     # ignore background
     unique_labels = [l for l in np.unique(labels) if l > 0]
+    assert len(unique_labels) > 0, unique_labels
     label_sums = [np.sum(labels == l) for l in unique_labels]
     # restrict to biggesr region (the organ hopefully)
-    label_sum, largest_fg_label = sorted(zip(label_sums, unique_labels),
-                                         reverse=True)[0]
+    label_sum, largest_fg_label = sorted(zip(label_sums, unique_labels), reverse=True)[0]
     # restrict to single largest region
     seg[labels != largest_fg_label] = 0
     label_coords = np.argwhere(seg == 1)
