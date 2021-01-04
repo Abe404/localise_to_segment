@@ -142,7 +142,7 @@ if __name__ == '__main__':
     plot_dice('exp_output/struct_seg_heart_full', 'basline')
 
     # Localisation network
-    plot_dice('exp_output/struct_seg_heart_cropped_fixed', 'loc')
+    plot_dice('exp_output/struct_seg_heart_cropped_fixed', 'organ')
 
     # Organ segmentation network
-    plot_dice('exp_output/struct_seg_heart_scaled_64_256', 'organ')
+    plot_dice('exp_output/struct_seg_heart_scaled_64_256', 'loc')
