@@ -25,6 +25,7 @@ from skimage.io import imsave
 import shutil
 import matplotlib.pyplot as plt
 import seaborn as sns
+import texfig
 
 from data_prep import load_im_and_heart
 from csv_utils import load_csv
@@ -56,10 +57,10 @@ def load_train_dice():
     return seconds[:200], dices[:200]
 
 
-def plot_dice(log_dir):
+def plot_dice(log_dir, name):
     # First plot dice over epochs for both training and validation.
     for x_axis in ['time', 'epochs']:
-        plt.figure(figsize=(16, 9))
+        #plt.figure(figsize=(16, 9))
         clrs = sns.color_palette("husl", 5)
         with sns.axes_style('white'):
             plt.grid()
@@ -112,9 +113,11 @@ def plot_dice(log_dir):
         if not os.path.isdir(os.path.join(log_dir, 'plots')):
             os.makedirs(os.path.join(log_dir, 'plots'))
 
-        fig_path = os.path.join(log_dir, 'plots', 'train_val_dice_' + x_axis + '.png')
+        #fig_path = os.path.join(log_dir, 'plots', 'train_val_dice_' + x_axis + '.png')
+        fig_path = os.path.join(log_dir, 'plots', 'train_val_dice_' + x_axis + '_' + name)
         print('saving figure to ', fig_path)
-        plt.savefig(fig_path)
+        # plt.savefig(fig_path)
+        texfig.savefig(fig_path)
         # Then plot dice over time (minutes) for both training and validation.
 
 
@@ -133,13 +136,13 @@ def show_central_heart_slice(input_dir, im_dir_name = '1'):
         imsave(f'slices/central_slice_{str(i).zfill(3)}.png', im_for_show)
 
 if __name__ == '__main__':
-    # output_dir = os.path.join('data', 'ThoracicOAR_eighth')
-    # show_central_heart_slice(output_dir, im_dir_name = '1')
-    # plot_dice('train_output/struct_seg_heart_quarter_adam_less_cx')
-    #plot_dice('train_output/struct_seg_heart_full')
-    # plot_dice('train_output/struct_seg_heart_quarter_lr_1e-4')
-    plot_dice('exp_output/struct_seg_heart_cropped_fixed')
-    #plot_dice('exp_output/struct_seg_heart_scaled_64_256')
-    
-    # I think i screwed up here. 
-    #show_central_heart_slice('data/ThoracicOAR_cropped', im_dir_name = '1')
+    # show_central_heart_slice('data/ThoracicOAR_cropped', im_dir_name = '1')
+
+    # Baseline full image segmentation
+    plot_dice('exp_output/struct_seg_heart_full', 'basline')
+
+    # Localisation network
+    plot_dice('exp_output/struct_seg_heart_cropped_fixed', 'loc')
+
+    # Organ segmentation network
+    plot_dice('exp_output/struct_seg_heart_scaled_64_256', 'organ')
