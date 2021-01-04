@@ -133,6 +133,34 @@ def create_smaller_size_dataset(input_dir, output_dir, scale, output_shape=None)
                               scaled_im_labels)
 
 
+
+def get_heart_centroid(seg):
+    labels = measure.label(seg == 1, background=0)
+    largest_label = None
+    # ignore background
+    unique_labels = [l for l in np.unique(labels) if l > 0]
+    label_sums = [np.sum(labels == l) for l in unique_labels]
+    # restrict to biggesr region (the organ hopefully)
+    label_sum, largest_fg_label = sorted(zip(label_sums, unique_labels),
+                                         reverse=True)[0]
+    # restrict to single largest region
+    seg[labels != largest_fg_label] = 0
+    label_coords = np.argwhere(seg == 1)
+
+    zs = label_coords[:, 0]
+    ys = label_coords[:, 1]
+    xs = label_coords[:, 2]
+
+    depth = np.max(zs) - np.min(zs)
+    height = np.max(ys) - np.min(ys)
+    width = np.max(xs) - np.min(xs)
+    z_mid = np.min(zs) + (depth / 2)
+    y_mid = np.min(ys) + (height / 2)
+    x_mid = np.min(xs) + (width / 2)
+    return z_mid, y_mid, x_mid    
+
+
+
 def get_crop_coords(seg, output_shape):
     labels = measure.label(seg == 1, background=0)
     largest_label = None
@@ -163,8 +191,6 @@ def get_crop_coords(seg, output_shape):
     z_min = z_mid - (output_shape[0] // 2)
     y_min = y_mid - (output_shape[1] // 2)
     x_min = x_mid - (output_shape[2] // 2)
-
-    # for crop
     z_max = z_min + output_shape[0]
     y_max = y_min + output_shape[1]
     x_max = x_min + output_shape[2]
