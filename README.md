@@ -1,4 +1,4 @@
-# Localise to segment: An investigation into the accuracy improvments provided by localisation steps for semantic segmentation of organs at risk.
+# Localise to segment: An investigation into the accuracy improvements provided by localisation steps for semantic segmentation of organs at risk.
 
 Install dependencies.
 
