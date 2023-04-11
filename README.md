@@ -1,5 +1,7 @@
 # Localise to segment: An investigation into the accuracy improvements provided by localisation steps for semantic segmentation.
 
+Preprint now available: https://arxiv.org/abs/2304.04606v1 
+
 Install dependencies.
 
     pip install -r requirements.txt
